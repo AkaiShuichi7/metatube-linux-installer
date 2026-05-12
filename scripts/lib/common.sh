@@ -155,14 +155,14 @@ setup_install_logging() {
   mkdir -p "$LOG_DIR"
   touch "$INSTALL_LOG"
   chmod 0644 "$INSTALL_LOG"
-  exec >> "$INSTALL_LOG" 2>&1
+  exec > >(tee -a "$INSTALL_LOG") 2> >(tee -a "$INSTALL_LOG" >&2)
 }
 
 setup_update_logging() {
   mkdir -p "$LOG_DIR"
   touch "$UPDATE_LOG"
   chmod 0644 "$UPDATE_LOG"
-  exec >> "$UPDATE_LOG" 2>&1
+  exec > >(tee -a "$UPDATE_LOG") 2> >(tee -a "$UPDATE_LOG" >&2)
 }
 
 generate_token() {
@@ -215,13 +215,28 @@ write_file() {
 install_binary_from_archive() {
   local archive_path="$1"
   local extract_dir="$TMP_DIR/extracted"
+  local expected_binary_name fallback_binary_name extracted_binary matched_binaries
   rm -rf "$extract_dir"
   mkdir -p "$extract_dir"
   unzip -oq "$archive_path" -d "$extract_dir"
 
-  local extracted_binary
-  extracted_binary="$(find "$extract_dir" -type f -name 'metatube-server' | head -n1)"
-  [[ -n "$extracted_binary" ]] || fail "压缩包中未找到 metatube-server 二进制。"
+  expected_binary_name="${ASSET_NAME%.zip}"
+  fallback_binary_name="metatube-server"
+
+  extracted_binary="$(find "$extract_dir" -type f -name "$expected_binary_name" | head -n1)"
+
+  if [[ -z "$extracted_binary" ]]; then
+    extracted_binary="$(find "$extract_dir" -type f -name "$fallback_binary_name" | head -n1)"
+  fi
+
+  if [[ -z "$extracted_binary" ]]; then
+    matched_binaries="$(find "$extract_dir" -type f -name 'metatube-server*')"
+    if [[ -n "$matched_binaries" && "$(printf '%s\n' "$matched_binaries" | wc -l)" -eq 1 ]]; then
+      extracted_binary="$matched_binaries"
+    fi
+  fi
+
+  [[ -n "$extracted_binary" ]] || fail "压缩包中未找到可安装二进制。"
 
   install -m 0755 "$extracted_binary" "$BIN_PATH"
   log_info "二进制已安装：$BIN_PATH"
