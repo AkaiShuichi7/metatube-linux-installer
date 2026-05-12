@@ -32,6 +32,8 @@ Debian/Ubuntu 下自动安装、部署、更新 MetaTube 的 Bash 工具。
 curl -fsSL https://raw.githubusercontent.com/AkaiShuichi7/metatube-linux-installer/main/install.sh | sudo bash
 ```
 
+脚本会自动拉取安装所需的辅助文件，因此支持直接通过 `curl | bash` 执行。
+
 安装完成后：
 
 - 服务名：`metatube`

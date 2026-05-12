@@ -1,7 +1,54 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BOOTSTRAP_ROOT=""
+SCRIPT_DIR=""
+REMOTE_BASE_URL="${METATUBE_INSTALLER_REMOTE_BASE_URL:-https://raw.githubusercontent.com/AkaiShuichi7/metatube-linux-installer/main}"
+
+cleanup_bootstrap_root() {
+  if [[ -n "$BOOTSTRAP_ROOT" && -d "$BOOTSTRAP_ROOT" ]]; then
+    rm -rf "$BOOTSTRAP_ROOT"
+  fi
+}
+
+download_bootstrap_file() {
+  local relative_path="$1"
+  local target_path="$2"
+
+  curl -fsSL "$REMOTE_BASE_URL/$relative_path" -o "$target_path"
+}
+
+bootstrap_remote_tree() {
+  command -v curl >/dev/null 2>&1 || {
+    printf '[ERROR] 远程安装模式需要预先安装 curl。\n' >&2
+    exit 1
+  }
+
+  BOOTSTRAP_ROOT="$(mktemp -d /tmp/metatube-installer-bootstrap.XXXXXX)"
+  mkdir -p "$BOOTSTRAP_ROOT/scripts/lib"
+
+  download_bootstrap_file "update.sh" "$BOOTSTRAP_ROOT/update.sh"
+  download_bootstrap_file "scripts/lib/common.sh" "$BOOTSTRAP_ROOT/scripts/lib/common.sh"
+  download_bootstrap_file "scripts/lib/github.sh" "$BOOTSTRAP_ROOT/scripts/lib/github.sh"
+  download_bootstrap_file "scripts/lib/systemd.sh" "$BOOTSTRAP_ROOT/scripts/lib/systemd.sh"
+
+  SCRIPT_DIR="$BOOTSTRAP_ROOT"
+}
+
+resolve_script_dir() {
+  local script_path="${BASH_SOURCE[0]:-}"
+
+  if [[ -n "$script_path" && -f "$script_path" ]]; then
+    SCRIPT_DIR="$(cd "$(dirname "$script_path")" && pwd)"
+    return 0
+  fi
+
+  bootstrap_remote_tree
+}
+
+trap cleanup_bootstrap_root EXIT
+
+resolve_script_dir
 
 source "$SCRIPT_DIR/scripts/lib/common.sh"
 source "$SCRIPT_DIR/scripts/lib/github.sh"
