@@ -86,6 +86,8 @@ main() {
 
   log_info "安装完成。版本：$tag_name"
   log_info "服务状态：systemctl status $SERVICE_NAME"
+  log_info "TOKEN 配置文件：$ENV_FILE"
+  log_info "查看 TOKEN：sudo grep '^TOKEN=' $ENV_FILE"
 }
 
 main "$@"

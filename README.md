@@ -41,6 +41,10 @@ curl -fsSL https://raw.githubusercontent.com/AkaiShuichi7/metatube-linux-install
 - 查看日志：`journalctl -u metatube -f`
 - 查看安装日志：`tail -f /var/log/metatube/install.log`
 - 查看更新日志：`tail -f /var/log/metatube/update.log`
+- TOKEN 配置文件：`/etc/metatube/metatube.env`
+- 查看 TOKEN：`sudo grep '^TOKEN=' /etc/metatube/metatube.env`
+
+> 安全说明：安装脚本不会直接打印 TOKEN 明文，只提示配置文件路径和查看命令，避免终端记录或录屏泄露。
 
 ## 更新机制
 
