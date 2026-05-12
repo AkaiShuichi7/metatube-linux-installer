@@ -29,10 +29,8 @@ Debian/Ubuntu 下自动安装、部署、更新 MetaTube 的 Bash 工具。
 需要 root。
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/<owner>/metatube-linux-installer/main/install.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/AkaiShuichi7/metatube-linux-installer/main/install.sh | sudo bash
 ```
-
-将 `<owner>` 替换成你的 GitHub 用户名或组织名。
 
 安装完成后：
 
